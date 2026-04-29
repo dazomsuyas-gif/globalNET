@@ -1,0 +1,47 @@
+{
+  "name": "globalnet",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@paypal/checkout-server-sdk": "^1.0.3",
+    "@paypal/paypal-js": "^5.0.0",
+    "@prisma/client": "^5.18.0",
+    "@react-three/drei": "^9.88.13",
+    "@react-three/fiber": "^8.15.0",
+    "@stripe/stripe-js": "^2.0.0",
+    "amadeus": "^11.0.0",
+    "clsx": "^2.1.0",
+    "framer-motion": "^11.0.0",
+    "gsap": "^3.12.2",
+    "mongodb": "^6.11.0",
+    "next": "^14.2.35",
+    "next-auth": "^3.29.10",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "resend": "^6.1.3",
+    "stripe": "^12.16.0",
+    "three": "^0.158.0",
+    "twilio": "^4.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.158.2",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^16.2.4",
+    "postcss": "^8.4.40",
+    "prisma": "^5.18.0",
+    "tailwindcss": "^3.4.5",
+    "tsx": "^4.21.0",
+    "typescript": "^5.5.4"
+  }
+}

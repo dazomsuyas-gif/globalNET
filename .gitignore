@@ -1,0 +1,59 @@
+# See https://github.com/github/gitignore/blob/main/Next.js.gitignore
+
+# Dependencies
+**/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Production builds
+.next/
+out/
+
+# Environment variables
+.env*
+!.env.example
+
+# Vercel
+.vercel
+
+# Debug
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Prisma
+prisma/migrations/
+!prisma/migrations/0_init
+
+# Logs
+*.log
+logs
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea
+*.swp
+*.swo
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.nyc_output
+
