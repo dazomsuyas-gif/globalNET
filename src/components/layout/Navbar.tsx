@@ -6,11 +6,13 @@ const navLinks = [
   { href: '/knowledge', label: 'Knowledge' },
   { href: '/languages', label: 'Languages' },
   { href: '/stories', label: 'Stories' },
+  { href: '/entertainment', label: 'Entertainment' },
   { href: '/search', label: 'Search' },
   { href: '/marketplace', label: 'Marketplace' },
   { href: '/tourism', label: 'Tourism' },
   { href: '/creator', label: 'Creator' },
-  { href: '/community', label: 'Community' }
+  { href: '/community', label: 'Community' },
+  { href: '/politics', label: 'Politics' }
 ];
 
 export default function Navbar() {
