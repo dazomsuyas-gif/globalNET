@@ -10,21 +10,7 @@ const navLinks = [
   { href: '/marketplace', label: 'Marketplace' },
   { href: '/tourism', label: 'Tourism' },
   { href: '/creator', label: 'Creator' },
-  { href: '/', label: 'Home' },
-  { href: '/knowledge', label: 'Knowledge' },
-  { href: '/languages', label: 'Languages' },
-  { href: '/stories', label: 'Stories' },
-  { href: '/search', label: 'Search' },
-  { href: '/marketplace', label: 'Marketplace' },
-  { href: '/tourism', label: 'Tourism' },
-  { href: '/creator', label: 'Creator' },
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/knowledge', label: 'Knowledge' },
-  { href: '/languages', label: 'Languages' },
-  { href: '/stories', label: 'Stories' },
-  { href: '/marketplace', label: 'Marketplace' },
-  { href: '/tourism', label: 'Tourism' },
-  { href: '/creator', label: 'Creator' }
+  { href: '/community', label: 'Community' }
 ];
 
 export default function Navbar() {
