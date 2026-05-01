@@ -6,6 +6,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
   apiVersion: '2022-11-15'
 });
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -50,9 +52,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error('Stripe error:', error);
+console.error('Stripe error:', error);
     return NextResponse.json({ error: 'Payment processing failed' }, { status: 500 });
   }
 }
-
-export const dynamic = 'force-dynamic';

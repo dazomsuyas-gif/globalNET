@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db';
 import { articles as mockArticles } from '@/data/articles';
 import { marketplaceData } from '@/data/marketplaceData';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get('q') || '';

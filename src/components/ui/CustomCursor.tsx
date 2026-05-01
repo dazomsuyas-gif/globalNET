@@ -46,8 +46,14 @@ export default function CustomCursor() {
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseleave', handleMouseLeave);
 
-    return () => {
-      document.body.removeChild(cursor);
+return () => {
+      try {
+        if (cursor.parentNode) {
+          cursor.parentNode.removeChild(cursor);
+        }
+      } catch (e) {
+        // Element may have already been removed
+      }
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
     };

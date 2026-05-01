@@ -11,6 +11,8 @@ try {
   prisma = null;
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     if (!prisma) {

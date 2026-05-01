@@ -5,16 +5,36 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 // Handle database connection - fails gracefully if no DB
-let prisma: PrismaClient | null = null;
+let prismaClient: PrismaClient | null = null;
 
-try {
-  prisma = globalForPrisma.prisma ?? new PrismaClient();
-  if (process.env.NODE_ENV !== 'production') {
-    globalForPrisma.prisma = prisma;
+const createPrismaClient = () => {
+  if (prismaClient) return prismaClient;
+  
+  try {
+    if (process.env.DATABASE_URL) {
+      prismaClient = globalForPrisma.prisma ?? new PrismaClient();
+      if (process.env.NODE_ENV !== 'production') {
+        globalForPrisma.prisma = prismaClient;
+      }
+    } else {
+      console.warn('DATABASE_URL not set, using null client');
+    }
+  } catch (e) {
+    console.warn('Database connection failed, using null client');
+    prismaClient = null;
   }
-} catch (e) {
-  console.warn('Database connection failed, using null client');
-  prisma = null;
-}
+  
+  return prismaClient;
+};
 
-export { prisma };
+// Export lazy-loaded Prisma client
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    if (prop === 'then') return undefined;
+    const client = createPrismaClient();
+    if (!client) {
+      return () => undefined;
+    }
+    return (client as any)[prop];
+  }
+});

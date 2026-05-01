@@ -2,6 +2,8 @@ import { prisma } from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { lessonsData } from '@/data/lessons';
 
+export const dynamic = 'force-dynamic';
+
 // Mock courses data from lessons
 const mockCourses = [
   { id: 'eng-a1', title: 'English A1 - Beginner', language: 'english', level: 'A1', lessons: 50, description: 'Learn basic English greetings and expressions', price: 29.99, published: true },
