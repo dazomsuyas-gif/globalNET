@@ -1,6 +1,6 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { signIn } from 'next-auth/client';
 import Link from 'next/link';
 import { useState } from 'react';
 import { motion } from 'framer-motion';

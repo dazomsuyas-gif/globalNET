@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { signIn } from 'next-auth/react';
+import { signIn } from 'next-auth/client';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({

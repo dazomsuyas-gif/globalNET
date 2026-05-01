@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { articles as mockArticles } from '@/data/articles';
+import { marketplaceData } from '@/data/marketplaceData';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -10,6 +12,34 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Mock search results when DB unavailable
+    const mockProducts = marketplaceData.filter(p => 
+      p.title.toLowerCase().includes(q.toLowerCase()) ||
+      p.description.toLowerCase().includes(q.toLowerCase())
+    ).slice(0, 5).map(p => ({
+      type: 'product' as const,
+      title: p.title,
+      slug: p.title.toLowerCase().replace(/\s+/g, '-'),
+      category: 'electronics',
+      price: p.priceUSD,
+      href: `/marketplace/electronics`
+    }));
+
+    const mockArticlesResults = mockArticles.filter(a =>
+      a.title.toLowerCase().includes(q.toLowerCase()) ||
+      a.excerpt.toLowerCase().includes(q.toLowerCase())
+    ).slice(0, 5).map(a => ({
+      type: 'article' as const,
+      title: a.title,
+      slug: a.slug,
+      category: a.category,
+      href: `/knowledge/${a.slug}`
+    }));
+
+    if (!prisma) {
+      return NextResponse.json([...mockProducts, ...mockArticlesResults].slice(0, 15));
+    }
+
     const [products, courses, articles] = await Promise.all([
       prisma.product.findMany({
         where: {
@@ -55,7 +85,7 @@ export async function GET(request: NextRequest) {
         price: p.price,
         href: `/marketplace/${p.slug}`
       })),
-...courses.map((c: any) => ({
+      ...courses.map((c: any) => ({
         type: 'course' as const,
         title: c.title,
         slug: c.slug,
@@ -63,7 +93,7 @@ export async function GET(request: NextRequest) {
         price: c.price,
         href: `/languages/${c.slug}`
       })),
-...articles.map((a: any) => ({
+      ...articles.map((a: any) => ({
         type: 'article' as const,
         title: a.title,
         slug: a.slug,
@@ -78,4 +108,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json([]);
   }
 }
-
