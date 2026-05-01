@@ -1,39 +1,67 @@
 'use client';
 
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Sphere, OrbitControls } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 
 function Globe() {
-  const meshRef = useRef<THREE.Mesh>(null!);
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  const textureUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Land_ocean_ice_2048.jpg/1024px-Land_ocean_ice_2048.jpg';
+  const normalUrl = 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_normal_2048.jpg';
+
+  const texture = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return new THREE.TextureLoader().load(textureUrl);
+    }
+    return null;
+  }, [textureUrl]);
+
+  const normalMap = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return new THREE.TextureLoader().load(normalUrl);
+    }
+    return null;
+  }, [normalUrl]);
 
   useFrame((state) => {
-    meshRef.current.rotation.y = state.clock.elapsedTime * 0.1;
+    if (meshRef.current) {
+      meshRef.current.rotation.y = state.clock.elapsedTime * 0.1;
+    }
   });
 
+  const geometry = useMemo(() => new THREE.SphereGeometry(1, 64, 64), []);
+  const material = useMemo(() => new THREE.MeshStandardMaterial({
+    map: texture,
+    normalMap: normalMap,
+    emissive: new THREE.Color('#111')
+  }), [texture, normalMap]);
+
   return (
-    <Sphere ref={meshRef} args={[1, 64, 64]}>
-      <meshStandardMaterial
-        map={new THREE.TextureLoader().load('https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Land_ocean_ice_2048.jpg/1024px-Land_ocean_ice_2048.jpg')}
-        normalMap={new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_normal_2048.jpg')}
-        emissive="#111" 
-      />
-    </Sphere>
+    <mesh ref={meshRef} geometry={geometry} material={material} />
   );
 }
 
 function TanzaniaMarker() {
+  const geometry = useMemo(() => new THREE.SphereGeometry(0.025, 8, 8), []);
+  const material = useMemo(() => new THREE.MeshBasicMaterial({ 
+    color: '#C9A84C',
+    emissive: new THREE.Color('#C9A84C'),
+    emissiveIntensity: 0.3
+  }), []);
+
   return (
-    <mesh position={[0.35, 0.05, 1.02]}>
-      <sphereGeometry args={[0.025, 8, 8]} />
-      <meshBasicMaterial color="#C9A84C" emissive="#C9A84C" emissiveIntensity={0.3} />
-    </mesh>
+    <mesh position={[0.35, 0.05, 1.02]} geometry={geometry} material={material} />
   );
 }
 
 export default function Globe3D() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
   return (
     <div className="w-full h-80 lg:h-96 rounded-2xl overflow-hidden shadow-2xl">
       <Canvas 
