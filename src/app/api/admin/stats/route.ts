@@ -1,45 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    if (!prisma) {
-      // Return mock stats when DB not available
-      return NextResponse.json({
-        users: 1250,
-        orders: 342,
-        revenue: 45890,
-        products: 28
-      });
-    }
-
-    const [usersCount, ordersCount, productsCount] = await Promise.all([
+    const [totalUsers, totalOrders, pendingOrders] = await Promise.all([
       prisma.user.count(),
       prisma.order.count(),
-      prisma.product.count({ where: { published: true } })
+      prisma.order.count({ where: { status: 'pending' } })
     ]);
 
-    const revenue = await prisma.order.aggregate({
+    const revenueData = await prisma.order.aggregate({
       _sum: { total: true },
-      where: { status: { in: ['completed', 'shipped'] } }
+      where: { status: 'completed' }
     });
 
+    const totalRevenue = revenueData._sum?.total || 0;
+
     return NextResponse.json({
-      users: usersCount,
-      orders: ordersCount,
-      revenue: revenue._sum.total || 0,
-      products: productsCount
+      totalUsers,
+      totalOrders,
+      totalRevenue,
+      pendingOrders
     });
   } catch (error) {
-    console.error('Stats error:', error);
-    // Return mock stats on error
-    return NextResponse.json({
-      users: 1250,
-      orders: 342,
-      revenue: 45890,
-      products: 28
-    });
+    console.error('Stats fetch error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch stats' },
+      { status: 500 }
+    );
   }
 }

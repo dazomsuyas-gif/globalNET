@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { articles as mockArticles } from '@/data/articles';
-import { marketplaceData } from '@/data/marketplaceData';
+import { products as marketplaceProducts } from '@/data/marketplaceData';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,16 +15,16 @@ export async function GET(request: NextRequest) {
 
   try {
     // Mock search results when DB unavailable
-    const mockProducts = marketplaceData.filter(p => 
-      p.title.toLowerCase().includes(q.toLowerCase()) ||
+    const mockProducts = marketplaceProducts.filter((p: any) => 
+      p.name.toLowerCase().includes(q.toLowerCase()) ||
       p.description.toLowerCase().includes(q.toLowerCase())
     ).slice(0, 5).map(p => ({
       type: 'product' as const,
-      title: p.title,
-      slug: p.title.toLowerCase().replace(/\s+/g, '-'),
-      category: 'electronics',
+      title: p.name,
+      slug: p.name.toLowerCase().replace(/\s+/g, '-'),
+      category: p.category,
       price: p.priceUSD,
-      href: `/marketplace/electronics`
+      href: `/marketplace/${p.name.toLowerCase().replace(/\s+/g, '-')}`
     }));
 
     const mockArticlesResults = mockArticles.filter(a =>
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([...mockProducts, ...mockArticlesResults].slice(0, 15));
     }
 
-    const [products, courses, articles] = await Promise.all([
+    const [products, articles] = await Promise.all([
       prisma.product.findMany({
         where: {
           OR: [
@@ -52,17 +52,6 @@ export async function GET(request: NextRequest) {
           published: true
         },
         select: { id: true, name: true, slug: true, category: true, price: true },
-        take: 5
-      }),
-      prisma.course.findMany({
-        where: {
-          OR: [
-            { title: { contains: q, mode: 'insensitive' } },
-            { description: { contains: q, mode: 'insensitive' } }
-          ],
-          published: true
-        },
-        select: { id: true, title: true, slug: true, language: true, price: true },
         take: 5
       }),
       prisma.article.findMany({
@@ -86,14 +75,6 @@ export async function GET(request: NextRequest) {
         category: p.category,
         price: p.price,
         href: `/marketplace/${p.slug}`
-      })),
-      ...courses.map((c: any) => ({
-        type: 'course' as const,
-        title: c.title,
-        slug: c.slug,
-        category: c.language,
-        price: c.price,
-        href: `/languages/${c.slug}`
       })),
       ...articles.map((a: any) => ({
         type: 'article' as const,

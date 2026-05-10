@@ -11,7 +11,8 @@ async function main() {
       email: 'admin@globalnet.com',
       name: 'Admin User',
       emailVerified: new Date(),
-      role: 'ADMIN'
+      role: 'ADMIN',
+      referralCode: 'admin-globalnet'
     }
   });
 
@@ -22,7 +23,8 @@ async function main() {
       email: 'user@example.com',
       name: 'Demo User',
       emailVerified: new Date(),
-      role: 'USER'
+      role: 'USER',
+      referralCode: 'user-globalnet'
     }
   });
 
@@ -40,23 +42,21 @@ async function main() {
     });
   }
 
-  // Seed Courses (8)
-  const coursesData = [
-    { title: 'Swahili for Beginners', slug: 'swahili-beginners', language: 'Swahili', level: 'A1', lessons: 20, description: 'Complete...', price: 49, published: true },
-    // Add more...
-  ];
-
-  for (const course of coursesData) {
-    await prisma.course.upsert({
-      where: { slug: course.slug },
-      update: {},
-      create: course
-    });
-  }
-
   // Seed Products (16)
   const productsData = [
-    { name: 'AI Script Generator Pro', slug: 'ai-script-gen', description: 'Generate...', price: 97, category: 'digital', images: ['/products/script.jpg'], stock: 999, published: true },
+    {
+      name: 'AI Script Generator Pro',
+      slug: 'ai-script-gen',
+      description: 'Generate scripts faster using AI-powered workflows.',
+      price: 97,
+      priceTZS: 270000,
+      category: 'digital',
+      images: ['/products/script.jpg'],
+      stock: 999,
+      sellerId: 'seller_globalnet',
+      sellerName: 'globalNET Store',
+      published: true
+    },
     // Add more...
   ];
 
@@ -68,19 +68,7 @@ async function main() {
     });
   }
 
-  // Seed Orders (5)
-  for (let i = 1; i <= 5; i++) {
-    await prisma.order.create({
-      data: {
-        userId: 'user_id_placeholder',
-        products: { name: `Product ${i}`, price: 50 + i * 10 },
-        total: 50 + i * 10,
-        status: 'completed',
-        paymentId: `pay_${i}`
-      }
-    });
-  }
-
+  // Skip order seeding - requires proper OrderItem relationships
   console.log('Seeding completed');
 }
 

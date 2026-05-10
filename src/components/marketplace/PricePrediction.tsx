@@ -1,5 +1,7 @@
 'use client';
 
+import { motion } from 'framer-motion';
+
 interface PricePredictionProps {
   views: number;
   wishlist: number;

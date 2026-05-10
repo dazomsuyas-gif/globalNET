@@ -23,8 +23,7 @@ export async function GET() {
         slug: a.slug,
         excerpt: a.excerpt,
         category: a.category,
-        createdAt: new Date(),
-        views: a.views
+        createdAt: new Date()
       })));
     }
     
@@ -37,8 +36,7 @@ export async function GET() {
         slug: true,
         excerpt: true,
         category: true,
-        createdAt: true,
-        views: true
+        createdAt: true
       }
     });
 
@@ -52,7 +50,7 @@ export async function GET() {
       excerpt: a.excerpt,
       category: a.category,
       createdAt: new Date(),
-      views: a.views
+      views: 0
     })));
   }
 }

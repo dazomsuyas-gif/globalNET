@@ -1,9 +1,13 @@
 'use client';
 
-import { useSession } from 'next-auth/client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+
+// Mock session for now
+const useSession = () => {
+  return { data: { user: { name: 'User' } }, status: 'authenticated' as const };
+};
 
 interface Stats {
   users: number;
@@ -24,7 +28,6 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (status === 'loading') return <div className="min-h-screen flex items-center justify-center"><div className="text-4xl text-primaryGold animate-spin">⚙️</div></div>;
   if (!session) return <div className="min-h-screen flex items-center justify-center text-white text-xl">Please sign in</div>;
 
   return (

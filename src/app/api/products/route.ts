@@ -1,19 +1,19 @@
 import { prisma } from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { marketplaceData } from '@/data/marketplaceData';
+import { products as marketplaceProducts } from '@/data/marketplaceData';
 
 // Mock products data
-const mockProducts = marketplaceData.map(p => ({
+const mockProducts = marketplaceProducts.map((p: any) => ({
   id: p.id,
-  name: p.title,
-  slug: p.title.toLowerCase().replace(/\s+/g, '-'),
+  name: p.name,
+  slug: p.name.toLowerCase().replace(/\s+/g, '-'),
   description: p.description,
   price: p.priceUSD,
-  category: 'electronics',
+  category: p.category,
   images: p.images,
   stock: p.stock,
-  published: true,
-  createdAt: p.createdAt
+  published: p.published ?? true,
+  createdAt: p.createdAt ?? new Date()
 }));
 
 export const dynamic = 'force-dynamic';

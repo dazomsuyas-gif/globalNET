@@ -23,7 +23,7 @@ const mockOrders = [
 export default function SellerDashboard() {
   const [dateRange, setDateRange] = useState('7days');
   const [totalEarnings, setTotalEarnings] = useState(0);
-  const [topProducts, setTopProducts] = useState([]);
+  const [topProducts, setTopProducts] = useState<{ name: string; sales: number }[]>([]);
 
   useEffect(() => {
     // Mock data load
@@ -32,7 +32,7 @@ export default function SellerDashboard() {
       { name: 'iPhone 15', sales: 12 },
       { name: 'MacBook M3', sales: 8 },
       { name: 'Galaxy S24', sales: 7 }
-    ]);
+    ] as any);
   }, []);
 
   return (

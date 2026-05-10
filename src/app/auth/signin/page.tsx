@@ -1,94 +1,138 @@
 'use client';
 
-import { signIn } from 'next-auth/client';
-import Link from 'next/link';
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    });
-    setLoading(false);
-    if (result?.ok) {
-      router.push('/dashboard');
-    } else {
-      alert(result?.error || 'Sign in failed');
+    setError('');
+
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError('Invalid credentials');
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      setError('An error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleGoogleSignIn = () => {
+    signIn('google', { callbackUrl: '/dashboard' });
+  };
+
   return (
-    <section className="min-h-screen py-24 flex items-center justify-center bg-gradient-to-br from-navy via-slate-900/50 to-black">
-      <motion.div 
-        className="glass-card max-w-md w-full p-12 rounded-3xl"
-        initial={{ opacity: 0, scale: 0.9, y: 50 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-[var(--font-hero)] font-bold bg-gradient-to-r from-primaryGold to-white bg-clip-text text-transparent mb-4">
-            Welcome Back
+    <div className="min-h-screen flex items-center justify-center bg-navy py-12 px-4">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-[var(--font-hero)] font-bold text-white">
+            Sign In
           </h1>
-          <p className="text-xl text-white/80">Sign in to your globalNET account</p>
+          <p className="mt-2 text-white/75">
+            Welcome back to globalNET
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-bold text-white mb-3">Email Address</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-6 py-5 rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl text-white placeholder-white/50 text-lg focus:border-primaryGold focus:outline-none transition-all shadow-inner"
-              placeholder="your@email.com"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-white mb-3">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-6 py-5 rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl text-white placeholder-white/50 text-lg focus:border-primaryGold focus:outline-none transition-all shadow-inner"
-              placeholder="••••••••"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-6 px-8 rounded-2xl bg-gradient-to-r from-primaryGold to-goldBright text-navy font-bold text-xl shadow-2xl hover:shadow-goldGlow hover:scale-[1.02] transition-all duration-300 disabled:opacity-50"
-          >
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
+        <div className="glass-card rounded-3xl border border-white/10 p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                <p className="text-red-400 text-sm">{error}</p>
+              </div>
+            )}
 
-        <div className="mt-10 text-center space-y-4">
-          <div className="text-white/60">
-            <Link href="/auth/signup" className="text-primaryGold font-bold hover:underline">
-              Create new account
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-white/50 focus:border-primaryGold focus:outline-none"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-white/80 mb-2">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-white/50 focus:border-primaryGold focus:outline-none"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-primaryGold py-3 text-lg font-semibold text-navy hover:bg-goldBright transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/20" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-navy text-white/60">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                onClick={handleGoogleSignIn}
+                className="w-full rounded-lg border border-white/20 bg-white/5 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+              >
+                Google
+              </button>
+              <button
+                onClick={() => signIn('facebook', { callbackUrl: '/dashboard' })}
+                className="w-full rounded-lg border border-white/20 bg-white/5 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+              >
+                Facebook
+              </button>
+            </div>
+          </div>
+
+          <p className="mt-6 text-center text-sm text-white/60">
+            Don't have an account?{' '}
+            <Link href="/auth/signup" className="text-primaryGold hover:text-goldBright">
+              Sign up
             </Link>
-          </div>
-          <button
-            onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
-            className="w-full py-4 px-8 rounded-2xl border-2 border-white/20 bg-white/5 backdrop-blur-xl text-white font-bold hover:border-primaryGold hover:bg-primaryGold/10 hover:shadow-goldGlow transition-all"
-          >
-            Continue with Google
-          </button>
+          </p>
         </div>
-      </motion.div>
-    </section>
+      </div>
+    </div>
   );
 }
