@@ -14,13 +14,13 @@ const publicRoutes = [
   '/offline',
 ];
 
-const authRoutes = ['/auth/signin', '/auth/signup', '/auth/error'];
-
-const protectedRoutes = ['/dashboard', '/admin'];
+const authRoutes = ['/auth/signin', '/auth/signup', '/auth/error', '/admin/login'];
+const protectedUserRoutes = ['/dashboard', '/community', '/creator', '/search'];
+const adminRoutes = ['/admin'];
 
 const isPublicPath = (path: string) =>
   publicRoutes.some(route => path === route || path.startsWith(`${route}/`)) ||
-  authRoutes.some(route => path === route || path.startsWith(`${route}/`));
+  authRoutes.includes(path);
 
 export default withAuth(
   function middleware(req) {
@@ -28,8 +28,11 @@ export default withAuth(
     const path = req.nextUrl.pathname;
 
     if (authRoutes.includes(path)) {
-      if (token) {
+      if (token && path !== '/admin/login') {
         return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
+      if (token && path === '/admin/login' && token.role === 'ADMIN') {
+        return NextResponse.redirect(new URL('/admin', req.url));
       }
       return NextResponse.next();
     }
@@ -38,17 +41,24 @@ export default withAuth(
       return NextResponse.next();
     }
 
-    if (protectedRoutes.some(route => path === route || path.startsWith(`${route}/`))) {
+    if (adminRoutes.some(route => path === route || path.startsWith(`${route}/`))) {
+      if (!token) {
+        const signInUrl = new URL('/admin/login', req.url);
+        signInUrl.searchParams.set('callbackUrl', path);
+        return NextResponse.redirect(signInUrl);
+      }
+      if (token.role !== 'ADMIN') {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
+      return NextResponse.next();
+    }
+
+    if (protectedUserRoutes.some(route => path === route || path.startsWith(`${route}/`))) {
       if (!token) {
         const signInUrl = new URL('/auth/signin', req.url);
         signInUrl.searchParams.set('callbackUrl', path);
         return NextResponse.redirect(signInUrl);
       }
-
-      if (path.startsWith('/admin') && token.role !== 'ADMIN') {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
-      }
-
       return NextResponse.next();
     }
 

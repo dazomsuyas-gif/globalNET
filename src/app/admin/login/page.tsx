@@ -1,125 +1,90 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminLogin() {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const router = useRouter();
+  const [email, setEmail] = useState('dazomsuyas@gmail.com');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    try {
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-        callbackUrl: '/admin',
-      });
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+      callbackUrl: '/admin/dashboard',
+    });
 
-      if (result?.error) {
-        setError('Invalid admin credentials.');
-      } else {
-        router.push('/admin');
-      }
-    } catch (error) {
-      setError('Unable to sign in at this time.');
-    } finally {
+    if (result?.error) {
+      setError('Invalid email or password');
       setLoading(false);
+      return;
     }
+
+    router.push('/admin');
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-br from-navy to-slate-900">
-      <motion.div 
-        className="glass-card p-12 rounded-3xl shadow-2xl max-w-md w-full"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="text-center mb-12">
-          <div className="w-24 h-24 mx-auto mb-6 bg-primaryGold rounded-3xl flex items-center justify-center shadow-goldGlow">
-            <span className="text-3xl font-bold text-navy">A</span>
+    <div className="min-h-screen flex items-center justify-center bg-navy-deep p-4">
+      <div className="glass-card p-8 w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="font-display text-4xl text-gold-primary">globalNET</h1>
+          <p className="text-white/70 mt-2">Knowledge Without Borders</p>
+          <div className="mt-4 inline-block px-3 py-1 bg-gold-primary/20 text-gold-primary rounded-full text-sm">
+            Admin Portal
           </div>
-          <h1 className="text-4xl font-[var(--font-hero)] text-white mb-2">Admin Login</h1>
-          <p className="text-white/70">Secure access to globalNET admin panel</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <motion.div 
-              className="bg-red-500/20 border border-red-500/50 text-red-400 p-4 rounded-2xl text-center font-bold"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
+            <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-red-400 text-center font-semibold">
               {error}
-            </motion.div>
+            </div>
           )}
 
           <div>
-            <label className="block text-white font-bold mb-3">Email Address</label>
-            <input 
-              type="email" 
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="dazomsuyas@gmail.com"
-              className="w-full p-5 rounded-2xl glass-card text-white placeholder-white/60 focus:ring-2 ring-primaryGold focus:outline-none transition-all"
+            <label className="block text-white/70 mb-2">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-primary"
               required
-              disabled={loading}
             />
           </div>
 
           <div>
-            <label className="block text-white font-bold mb-3">Password</label>
-            <input 
-              type="password" 
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              placeholder="@Kelvin1998"
-              className="w-full p-5 rounded-2xl glass-card text-white placeholder-white/60 focus:ring-2 ring-primaryGold focus:outline-none transition-all"
+            <label className="block text-white/70 mb-2">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-primary"
               required
-              disabled={loading}
             />
           </div>
 
-          <motion.button 
+          <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-primaryGold to-goldBright text-navy py-6 px-8 rounded-3xl text-xl font-bold shadow-2xl shadow-primaryGold/30 hover:shadow-goldGlow disabled:opacity-50 disabled:cursor-not-allowed"
-            whileHover={{ scale: loading ? 1 : 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="btn-primary w-full py-3 disabled:opacity-50"
           >
-            {loading ? (
-              <>
-                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-2"></div>
-                Signing In...
-              </>
-            ) : (
-              'Sign In to Admin'
-            )}
-          </motion.button>
-
-          <div className="text-center">
-            <Link href="/dashboard" className="text-primaryGold hover:text-goldBright font-bold underline">
-              ← Back to User Dashboard
-            </Link>
-          </div>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
         </form>
 
-        <div className="mt-8 p-4 bg-white/5 rounded-2xl text-xs text-white/60 text-center">
-          <div className="font-bold mb-1">Admin Credentials</div>
-          <div>Email: dazomsuyas@gmail.com</div>
-          <div>Password: @Kelvin1998</div>
-        </div>
-      </motion.div>
+        <p className="text-center text-white/40 text-sm mt-6">
+          Admin access only • Contact support for credentials
+        </p>
+      </div>
     </div>
   );
 }
