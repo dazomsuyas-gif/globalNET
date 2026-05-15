@@ -2,9 +2,16 @@ import Stripe from 'stripe';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2022-11-15'
-});
+function getStripeClient() {
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (!secret) {
+    throw new Error('Stripe secret key is not configured');
+  }
+
+  return new Stripe(secret, {
+    apiVersion: '2022-11-15'
+  });
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +61,7 @@ export async function POST(request: NextRequest) {
       quantity: 1,
     }];
 
+    const stripe = getStripeClient();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',

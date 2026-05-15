@@ -2,10 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2022-11-15',
-});
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+function getStripeClient() {
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (!secret) {
+    throw new Error('Stripe secret key is not configured');
+  }
+
+  return new Stripe(secret, {
+    apiVersion: '2022-11-15',
+  });
+}
+
+function getWebhookSecret() {
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!secret) {
+    throw new Error('Stripe webhook secret is not configured');
+  }
+
+  return secret;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -14,12 +29,15 @@ export async function POST(request: NextRequest) {
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
 
-    if (!signature || !webhookSecret) {
+    if (!signature) {
       return NextResponse.json(
         { error: 'Missing signature or webhook secret' },
         { status: 400 }
       );
     }
+
+    const stripe = getStripeClient();
+    const webhookSecret = getWebhookSecret();
 
     let event: Stripe.Event;
 

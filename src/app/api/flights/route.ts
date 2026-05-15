@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Amadeus from 'amadeus';
 
-const amadeus = new Amadeus({
-  clientId: process.env.AMADEUS_API_KEY,
-  clientSecret: process.env.AMADEUS_API_SECRET,
-});
+function getAmadeusClient() {
+  const clientId = process.env.AMADEUS_API_KEY;
+  const clientSecret = process.env.AMADEUS_API_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error('Amadeus credentials are not configured');
+  }
+
+  return new Amadeus({
+    clientId,
+    clientSecret,
+  });
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +36,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const amadeus = getAmadeusClient();
 
     // Search for flights
     const response = await amadeus.shopping.flightOffersSearch.get({
@@ -67,6 +78,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const amadeus = getAmadeusClient();
     const response = await amadeus.referenceData.locations.get({
       keyword,
       subType: 'AIRPORT,CITY',
