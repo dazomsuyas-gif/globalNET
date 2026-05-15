@@ -1,8 +1,6 @@
-import { NextAuthOptions } from 'next-auth';
+﻿import { NextAuthOptions } from 'next-auth';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import GoogleProvider from 'next-auth/providers/google';
-import FacebookProvider from 'next-auth/providers/facebook';
-import AppleProvider from 'next-auth/providers/apple';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
@@ -11,16 +9,8 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_CLIENT_ID!,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
-    }),
-    AppleProvider({
-      clientId: process.env.APPLE_CLIENT_ID!,
-      clientSecret: process.env.APPLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     }),
     CredentialsProvider({
       name: 'credentials',
@@ -34,7 +24,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email.toLowerCase() },
         });
 
         if (!user || !user.password) {
@@ -53,32 +43,37 @@ export const authOptions: NextAuthOptions = {
         return {
           id: user.id,
           email: user.email,
-          name: user.name,
+          name: user.name ?? user.email,
           image: user.image,
           role: user.role,
         };
       },
     }),
   ],
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.id = user.id;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.sub!;
-        session.user.role = token.role as 'USER' | 'ADMIN' | 'SELLER' | undefined;
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
       return session;
     },
   },
-  pages: {
-    signIn: '/auth/signin',
-  },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: false,
 };

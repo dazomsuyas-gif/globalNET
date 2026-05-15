@@ -195,18 +195,13 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="mt-6">
               <button
+                type="button"
                 onClick={handleGoogleSignIn}
                 className="w-full rounded-lg border border-white/20 bg-white/5 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors"
               >
-                Google
-              </button>
-              <button
-                onClick={() => signIn('facebook', { callbackUrl: '/dashboard' })}
-                className="w-full rounded-lg border border-white/20 bg-white/5 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors"
-              >
-                Facebook
+                Sign up with Google
               </button>
             </div>
           </div>

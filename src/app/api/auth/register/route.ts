@@ -1,12 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password, referredBy } = await request.json();
+    const { name, email, password } = await request.json();
 
-    // Validate input
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: 'Name, email, and password are required' },
@@ -14,9 +13,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: 'Password must be at least 6 characters' },
+        { status: 400 }
+      );
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -26,30 +33,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
-
     const referralCode = `ref-${Math.random().toString(36).slice(2, 10)}`;
+    const username = normalizedEmail.split('@')[0].replace(/[^a-z0-9]/gi, '').slice(0, 16) || `user${Math.random().toString(36).slice(2, 8)}`;
 
-    // Create user
     const user = await prisma.user.create({
       data: {
         name,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
+        username,
         role: 'USER',
         referralCode,
-        referredBy: referredBy || null,
+        xp: 0,
+        streak: 0,
       },
     });
 
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _password, ...userWithoutPassword } = user;
 
-    return NextResponse.json({
-      message: 'User created successfully',
-      user: userWithoutPassword
-    });
+    return NextResponse.json(
+      { message: 'User created successfully', user: userWithoutPassword },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(

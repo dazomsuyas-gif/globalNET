@@ -1,55 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function SignInPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams?.get('callbackUrl') || '/dashboard';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
+
+  useEffect(() => {
+    if (email || password) {
+      setError('');
+    }
+  }, [email, password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+      callbackUrl,
+    });
 
-      if (result?.error) {
-        setError('Invalid credentials');
-      } else {
-        router.push('/dashboard');
-      }
-    } catch (error) {
-      setError('An error occurred');
-    } finally {
+    if (result?.error) {
+      setError('Invalid email or password.');
       setLoading(false);
+      return;
     }
+
+    router.push(callbackUrl);
   };
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/dashboard' });
+    signIn('google', { callbackUrl });
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-navy py-12 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-[var(--font-hero)] font-bold text-white">
-            Sign In
-          </h1>
-          <p className="mt-2 text-white/75">
-            Welcome back to globalNET
-          </p>
+          <h1 className="text-3xl font-[var(--font-hero)] font-bold text-white">Sign In</h1>
+          <p className="mt-2 text-white/75">Welcome back to globalNET.</p>
         </div>
 
         <div className="glass-card rounded-3xl border border-white/10 p-8">
@@ -109,18 +111,13 @@ export default function SignInPage() {
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="mt-6">
               <button
+                type="button"
                 onClick={handleGoogleSignIn}
                 className="w-full rounded-lg border border-white/20 bg-white/5 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors"
               >
-                Google
-              </button>
-              <button
-                onClick={() => signIn('facebook', { callbackUrl: '/dashboard' })}
-                className="w-full rounded-lg border border-white/20 bg-white/5 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors"
-              >
-                Facebook
+                Sign in with Google
               </button>
             </div>
           </div>

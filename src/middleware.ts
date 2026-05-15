@@ -1,74 +1,68 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
 
+const publicRoutes = [
+  '/',
+  '/knowledge',
+  '/languages',
+  '/marketplace',
+  '/tourism',
+  '/stories',
+  '/entertainment',
+  '/contact',
+  '/about',
+  '/offline',
+];
+
+const authRoutes = ['/auth/signin', '/auth/signup', '/auth/error'];
+
+const protectedRoutes = ['/dashboard', '/admin'];
+
+const isPublicPath = (path: string) =>
+  publicRoutes.some(route => path === route || path.startsWith(`${route}/`)) ||
+  authRoutes.some(route => path === route || path.startsWith(`${route}/`));
+
 export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
-    const isAuth = !!token;
-    const isAuthPage = req.nextUrl.pathname.startsWith('/auth');
-    const isAdminPage = req.nextUrl.pathname.startsWith('/admin');
-    const isDashboardPage = req.nextUrl.pathname.startsWith('/dashboard');
-    const isSellerPage = req.nextUrl.pathname.startsWith('/marketplace/seller');
+    const path = req.nextUrl.pathname;
 
-    if (isAuthPage && isAuth) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
+    if (authRoutes.includes(path)) {
+      if (token) {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
+      return NextResponse.next();
     }
 
-    if (isAdminPage && (!isAuth || token.role !== 'ADMIN')) {
-      return NextResponse.redirect(new URL('/auth/signin', req.url));
+    if (isPublicPath(path)) {
+      return NextResponse.next();
     }
 
-    if (isDashboardPage && !isAuth) {
-      return NextResponse.redirect(new URL('/auth/signin', req.url));
+    if (protectedRoutes.some(route => path === route || path.startsWith(`${route}/`))) {
+      if (!token) {
+        const signInUrl = new URL('/auth/signin', req.url);
+        signInUrl.searchParams.set('callbackUrl', path);
+        return NextResponse.redirect(signInUrl);
+      }
+
+      if (path.startsWith('/admin') && token.role !== 'ADMIN') {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
+
+      return NextResponse.next();
     }
 
-    if (isSellerPage && (!isAuth || (token.role !== 'SELLER' && token.role !== 'ADMIN'))) {
-      return NextResponse.redirect(new URL('/auth/signin', req.url));
-    }
-
-    const response = NextResponse.next();
-    response.headers.set('X-Frame-Options', 'DENY');
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('X-XSS-Protection', '1; mode=block');
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    return response;
+    return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ token, req }) => {
-        const { pathname } = req.nextUrl;
-
-        if (
-          pathname.startsWith('/api/auth') ||
-          pathname.startsWith('/api/paypal/webhook') ||
-          pathname === '/' ||
-          pathname.startsWith('/knowledge') ||
-          pathname.startsWith('/languages') ||
-          pathname.startsWith('/stories') ||
-          pathname.startsWith('/marketplace') ||
-          pathname.startsWith('/entertainment') ||
-          pathname.startsWith('/tourism') ||
-          pathname.startsWith('/contact') ||
-          pathname.startsWith('/offline') ||
-          pathname === '/manifest.json' ||
-          pathname === '/robots.txt' ||
-          pathname === '/sw.js' ||
-          pathname.startsWith('/api/whatsapp-bot') ||
-          pathname.startsWith('/api/flights') ||
-          pathname.startsWith('/api/paypal') ||
-          pathname.startsWith('/api/stripe')
-        ) {
-          return true;
-        }
-
-        return !!token;
-      },
+      authorized: ({ token }) => true,
     },
   }
 );
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|public/).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|manifest.json|sw.js|robots.txt|offline).*)',
   ],
 };

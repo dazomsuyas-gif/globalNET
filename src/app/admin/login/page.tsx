@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -16,16 +17,24 @@ export default function AdminLogin() {
     setLoading(true);
     setError('');
 
-    // Admin credentials
-    if (formData.email === 'dazomsuyas@gmail.com' && formData.password === '@Kelvin1998') {
-      // Mock login - set session or localStorage
-      localStorage.setItem('adminToken', 'admin-auth-token');
-      router.push('/admin/dashboard');
-    } else {
-      setError('Invalid email or password');
+    try {
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+        callbackUrl: '/admin',
+      });
+
+      if (result?.error) {
+        setError('Invalid admin credentials.');
+      } else {
+        router.push('/admin');
+      }
+    } catch (error) {
+      setError('Unable to sign in at this time.');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
