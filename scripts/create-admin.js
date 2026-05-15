@@ -1,36 +1,47 @@
-const { PrismaClient } = require('@prisma/client');
+const { MongoClient } = require('mongodb');
 const bcrypt = require('bcryptjs');
 
-const prisma = new PrismaClient();
-
 async function createAdmin() {
+  const url = process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/globalnet';
+  const client = new MongoClient(url);
+
   try {
+    await client.connect();
+    const db = client.db();
+    const users = db.collection('User');
+
     const hashedPassword = await bcrypt.hash('@Kelvin1998', 10);
+    const email = 'dazomsuyas@gmail.com';
 
-    const admin = await prisma.user.upsert({
-      where: { email: 'dazomsuyas@gmail.com' },
-      update: {
-        password: hashedPassword,
-        name: 'Kelvin Juma Msuya',
-        role: 'ADMIN',
-        xp: 10000,
+    const result = await users.updateOne(
+      { email },
+      {
+        $set: {
+          email,
+          password: hashedPassword,
+          name: 'Kelvin Juma Msuya',
+          role: 'ADMIN',
+          xp: 10000,
+          referralCode: 'GLOBALNET_ADMIN',
+          updatedAt: new Date(),
+        },
+        $setOnInsert: {
+          createdAt: new Date(),
+        },
       },
-      create: {
-        email: 'dazomsuyas@gmail.com',
-        password: hashedPassword,
-        name: 'Kelvin Juma Msuya',
-        role: 'ADMIN',
-        xp: 10000,
-        referralCode: 'GLOBALNET_ADMIN',
-      },
-    });
+      { upsert: true }
+    );
 
-    console.log('✅ Admin user created or updated:', admin.email);
-    console.log('✅ Role set to:', admin.role);
+    if (result.upsertedCount > 0) {
+      console.log('✅ Admin user created:', email);
+    } else {
+      console.log('✅ Admin user updated:', email);
+    }
   } catch (error) {
     console.error('Error creating admin:', error);
+    process.exit(1);
   } finally {
-    await prisma.$disconnect();
+    await client.close();
   }
 }
 
